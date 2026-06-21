@@ -27,6 +27,7 @@ public class DriverAppealVO {
     private String driverName;
     private String driverPhone;
     private String restrictionNo;
+    private java.util.List<AppealMaterialRecordVO> materialRecords;
 
     public Long getId() {
         return id;
@@ -210,5 +211,13 @@ public class DriverAppealVO {
 
     public void setRestrictionNo(String restrictionNo) {
         this.restrictionNo = restrictionNo;
+    }
+
+    public java.util.List<AppealMaterialRecordVO> getMaterialRecords() {
+        return materialRecords;
+    }
+
+    public void setMaterialRecords(java.util.List<AppealMaterialRecordVO> materialRecords) {
+        this.materialRecords = materialRecords;
     }
 }

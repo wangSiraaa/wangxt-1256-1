@@ -7,12 +7,18 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fatigue.risk.common.PageResult;
 import com.fatigue.risk.dto.AppealSubmitDTO;
 import com.fatigue.risk.dto.AppealQueryDTO;
+import com.fatigue.risk.dto.AppealSupplementDTO;
 import com.fatigue.risk.dto.MaterialCheckDTO;
+import com.fatigue.risk.entity.AppealMaterialRecord;
+import com.fatigue.risk.entity.Driver;
 import com.fatigue.risk.entity.DriverAppeal;
 import com.fatigue.risk.entity.RiskRestriction;
 import com.fatigue.risk.enums.AppealStatusEnum;
+import com.fatigue.risk.enums.MaterialRecordTypeEnum;
 import com.fatigue.risk.enums.RestrictionStatusEnum;
+import com.fatigue.risk.mapper.AppealMaterialRecordMapper;
 import com.fatigue.risk.mapper.DriverAppealMapper;
+import com.fatigue.risk.vo.AppealMaterialRecordVO;
 import com.fatigue.risk.vo.DriverAppealVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,12 +33,18 @@ import java.util.stream.Collectors;
 public class DriverAppealService extends ServiceImpl<DriverAppealMapper, DriverAppeal> {
 
     private final DriverAppealMapper driverAppealMapper;
+    private final AppealMaterialRecordMapper appealMaterialRecordMapper;
     private final RiskRestrictionService riskRestrictionService;
+    private final DriverService driverService;
 
     public DriverAppealService(DriverAppealMapper driverAppealMapper,
-                               RiskRestrictionService riskRestrictionService) {
+                               AppealMaterialRecordMapper appealMaterialRecordMapper,
+                               RiskRestrictionService riskRestrictionService,
+                               DriverService driverService) {
         this.driverAppealMapper = driverAppealMapper;
+        this.appealMaterialRecordMapper = appealMaterialRecordMapper;
         this.riskRestrictionService = riskRestrictionService;
+        this.driverService = driverService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -72,6 +84,11 @@ public class DriverAppealService extends ServiceImpl<DriverAppealMapper, DriverA
         save(appeal);
 
         riskRestrictionService.bindAppeal(dto.getRestrictionId(), appeal.getId());
+
+        saveMaterialRecord(appeal.getId(), dto.getDriverId(), MaterialRecordTypeEnum.FIRST_SUBMIT,
+                dto.getRestProofUrl(), dto.getRestProofDesc(), dto.getRestStartTime(),
+                dto.getRestEndTime(), dto.getRestMinutes(), dto.getAppealReason(), null);
+
         return appeal;
     }
 
@@ -109,8 +126,67 @@ public class DriverAppealService extends ServiceImpl<DriverAppealMapper, DriverA
 
         if (dto.getMaterialComplete() != 1) {
             riskRestrictionService.updateRestrictionStatus(appeal.getRestrictionId(), RestrictionStatusEnum.RESTRICTING);
+
+            saveMaterialRecord(dto.getAppealId(), dto.getAuditorId(), MaterialRecordTypeEnum.RETURN_INCOMPLETE,
+                    null, null, null, null, null, null, dto.getIncompleteReason());
         }
         return getById(dto.getAppealId());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public DriverAppeal supplementMaterial(AppealSupplementDTO dto) {
+        DriverAppeal appeal = getById(dto.getAppealId());
+        if (appeal == null) {
+            throw new RuntimeException("申诉记录不存在");
+        }
+        if (!appeal.getAppealStatus().equals(AppealStatusEnum.MATERIAL_INCOMPLETE.getCode())) {
+            throw new RuntimeException("当前申诉状态不支持补充材料，仅材料不完整时可补充");
+        }
+        if (!appeal.getDriverId().equals(dto.getDriverId())) {
+            throw new RuntimeException("只能补充本人的申诉材料");
+        }
+
+        boolean hasProof = StringUtils.hasText(dto.getRestProofUrl());
+        boolean hasTimeRange = dto.getRestStartTime() != null && dto.getRestEndTime() != null;
+        boolean hasMinutes = dto.getRestMinutes() != null && dto.getRestMinutes() > 0;
+        boolean hasReason = StringUtils.hasText(dto.getAppealReason());
+        boolean complete = hasProof && hasTimeRange && hasMinutes && hasReason;
+
+        lambdaUpdate()
+                .eq(DriverAppeal::getId, dto.getAppealId())
+                .set(hasProof && StringUtils.hasText(dto.getRestProofUrl()), DriverAppeal::getRestProofUrl, dto.getRestProofUrl())
+                .set(StringUtils.hasText(dto.getRestProofDesc()), DriverAppeal::getRestProofDesc, dto.getRestProofDesc())
+                .set(dto.getRestStartTime() != null, DriverAppeal::getRestStartTime, dto.getRestStartTime())
+                .set(dto.getRestEndTime() != null, DriverAppeal::getRestEndTime, dto.getRestEndTime())
+                .set(dto.getRestMinutes() != null, DriverAppeal::getRestMinutes, dto.getRestMinutes())
+                .set(hasReason, DriverAppeal::getAppealReason, dto.getAppealReason())
+                .set(DriverAppeal::getMaterialComplete, complete ? 1 : 0)
+                .set(DriverAppeal::getIncompleteReason, complete ? null : "补充材料仍不完整，请检查证明文件、休息时段和申诉理由")
+                .set(DriverAppeal::getAppealStatus, complete
+                        ? AppealStatusEnum.PENDING_AUDIT.getCode()
+                        : AppealStatusEnum.MATERIAL_INCOMPLETE.getCode())
+                .set(DriverAppeal::getSubmitTime, LocalDateTime.now())
+                .set(DriverAppeal::getUpdateTime, LocalDateTime.now())
+                .update();
+
+        saveMaterialRecord(dto.getAppealId(), dto.getDriverId(), MaterialRecordTypeEnum.SUPPLEMENT,
+                dto.getRestProofUrl(), dto.getRestProofDesc(), dto.getRestStartTime(),
+                dto.getRestEndTime(), dto.getRestMinutes(), dto.getAppealReason(), null);
+
+        return getById(dto.getAppealId());
+    }
+
+    public List<AppealMaterialRecordVO> listMaterialRecords(Long appealId) {
+        List<AppealMaterialRecordVO> records = appealMaterialRecordMapper.selectByAppealId(appealId);
+        if (records != null) {
+            for (AppealMaterialRecordVO vo : records) {
+                vo.setRecordTypeDesc(MaterialRecordTypeEnum.getDescByCode(vo.getRecordType()));
+                if (!StringUtils.hasText(vo.getOperatorName()) && StringUtils.hasText(vo.getDefaultOperatorName())) {
+                    vo.setOperatorName(vo.getDefaultOperatorName());
+                }
+            }
+        }
+        return records;
     }
 
     public PageResult<DriverAppealVO> queryPage(AppealQueryDTO query) {
@@ -124,6 +200,7 @@ public class DriverAppealService extends ServiceImpl<DriverAppealMapper, DriverA
         DriverAppealVO vo = driverAppealMapper.selectAppealDetail(id);
         if (vo != null) {
             enrichDesc(List.of(vo));
+            vo.setMaterialRecords(listMaterialRecords(id));
         }
         return vo;
     }
@@ -151,7 +228,11 @@ public class DriverAppealService extends ServiceImpl<DriverAppealMapper, DriverA
         List<DriverAppeal> list = list(new LambdaQueryWrapper<DriverAppeal>()
                 .eq(DriverAppeal::getDriverId, driverId)
                 .orderByDesc(DriverAppeal::getCreateTime));
-        return list.stream().map(this::toVo).collect(Collectors.toList());
+        return list.stream().map(a -> {
+            DriverAppealVO vo = toVo(a);
+            vo.setMaterialRecords(listMaterialRecords(a.getId()));
+            return vo;
+        }).collect(Collectors.toList());
     }
 
     private DriverAppealVO toVo(DriverAppeal a) {
@@ -176,5 +257,32 @@ public class DriverAppealService extends ServiceImpl<DriverAppealMapper, DriverA
         vo.setAuditRemark(a.getAuditRemark());
         vo.setCreateTime(a.getCreateTime());
         return vo;
+    }
+
+    private void saveMaterialRecord(Long appealId, Long operatorId, MaterialRecordTypeEnum type,
+                                    String proofUrl, String proofDesc, LocalDateTime startTime,
+                                    LocalDateTime endTime, Integer minutes, String reason,
+                                    String remark) {
+        AppealMaterialRecord record = new AppealMaterialRecord();
+        record.setAppealId(appealId);
+        record.setRecordType(type.getCode());
+        record.setRestProofUrl(proofUrl);
+        record.setRestProofDesc(proofDesc);
+        record.setRestStartTime(startTime);
+        record.setRestEndTime(endTime);
+        record.setRestMinutes(minutes);
+        record.setAppealReason(reason);
+        record.setOperateRemark(remark);
+        record.setOperatorId(operatorId);
+        if (operatorId != null) {
+            Driver driver = driverService.getById(operatorId);
+            if (driver != null) {
+                record.setOperatorName(driver.getDriverName());
+            }
+        }
+        record.setSubmitTime(LocalDateTime.now());
+        record.setCreateTime(LocalDateTime.now());
+        record.setUpdateTime(LocalDateTime.now());
+        appealMaterialRecordMapper.insert(record);
     }
 }

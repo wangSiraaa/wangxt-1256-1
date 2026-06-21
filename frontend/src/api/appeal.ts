@@ -12,6 +12,17 @@ export interface AppealSubmitDTO {
   restMinutes?: number
 }
 
+export interface AppealSupplementDTO {
+  appealId: number
+  driverId: number
+  restProofUrl?: string
+  restProofDesc?: string
+  restStartTime?: string
+  restEndTime?: string
+  restMinutes?: number
+  appealReason?: string
+}
+
 export interface MaterialCheckDTO {
   appealId: number
   materialComplete: number
@@ -26,6 +37,24 @@ export interface AppealQueryDTO extends PageQuery {
   appealStatus?: number
   materialComplete?: number
   appealNo?: string
+}
+
+export interface AppealMaterialRecordVO {
+  id: number
+  appealId: number
+  recordType: number
+  recordTypeDesc: string
+  restProofUrl?: string
+  restProofDesc?: string
+  restStartTime?: string
+  restEndTime?: string
+  restMinutes?: number
+  appealReason?: string
+  operatorId?: number
+  operatorName?: string
+  operateRemark?: string
+  submitTime: string
+  createTime?: string
 }
 
 export interface DriverAppealVO {
@@ -52,10 +81,15 @@ export interface DriverAppealVO {
   driverName?: string
   driverPhone?: string
   restrictionNo?: string
+  materialRecords?: AppealMaterialRecordVO[]
 }
 
 export function submitAppeal(dto: AppealSubmitDTO) {
   return request<AppealSubmitDTO, DriverAppealVO>('/api/appeal/submit', 'post', dto)
+}
+
+export function supplementAppeal(dto: AppealSupplementDTO) {
+  return request<AppealSupplementDTO, DriverAppealVO>('/api/appeal/supplement', 'post', dto)
 }
 
 export function materialCheck(dto: MaterialCheckDTO) {
@@ -72,4 +106,8 @@ export function appealDetail(id: number) {
 
 export function listAppealsByDriver(driverId: number) {
   return request<any, DriverAppealVO[]>(`/api/appeal/driver/${driverId}`, 'get')
+}
+
+export function listMaterialRecords(appealId: number) {
+  return request<any, AppealMaterialRecordVO[]>(`/api/appeal/${appealId}/material-records`, 'get')
 }

@@ -79,6 +79,27 @@ CREATE TABLE driver_appeal (
     INDEX idx_driver (driver_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='司机申诉记录表';
 
+DROP TABLE IF EXISTS appeal_material_record;
+CREATE TABLE appeal_material_record (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    appeal_id BIGINT NOT NULL COMMENT '申诉ID',
+    record_type TINYINT NOT NULL COMMENT '记录类型：1-首次提交 2-补充材料 3-退回不完整',
+    rest_proof_url VARCHAR(512) COMMENT '休息证明文件URL',
+    rest_proof_desc VARCHAR(256) COMMENT '休息证明说明',
+    rest_start_time DATETIME COMMENT '休息开始时间',
+    rest_end_time DATETIME COMMENT '休息结束时间',
+    rest_minutes INT COMMENT '实际休息时长（分钟）',
+    appeal_reason TEXT COMMENT '申诉/补充说明理由',
+    operator_id BIGINT COMMENT '操作人ID（司机或审核员）',
+    operator_name VARCHAR(64) COMMENT '操作人姓名',
+    operate_remark VARCHAR(512) COMMENT '操作备注（退回原因等）',
+    submit_time DATETIME NOT NULL COMMENT '提交/操作时间',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT DEFAULT 0,
+    INDEX idx_appeal (appeal_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='申诉材料提交记录表';
+
 DROP TABLE IF EXISTS safety_review;
 CREATE TABLE safety_review (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
