@@ -9,17 +9,19 @@ import com.fatigue.risk.entity.DriverAppeal;
 import com.fatigue.risk.service.DriverAppealService;
 import com.fatigue.risk.vo.DriverAppealVO;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/appeal")
-@RequiredArgsConstructor
 public class DriverAppealController {
 
     private final DriverAppealService driverAppealService;
+
+    public DriverAppealController(DriverAppealService driverAppealService) {
+        this.driverAppealService = driverAppealService;
+    }
 
     @PostMapping("/submit")
     public Result<DriverAppeal> submit(@Valid @RequestBody AppealSubmitDTO dto) {

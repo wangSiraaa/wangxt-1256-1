@@ -2,7 +2,6 @@ package com.fatigue.risk.controller;
 
 import com.fatigue.risk.common.Result;
 import com.fatigue.risk.config.FatigueProperties;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
@@ -14,10 +13,13 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/common")
-@RequiredArgsConstructor
 public class CommonController {
 
     private final FatigueProperties fatigueProperties;
+
+    public CommonController(FatigueProperties fatigueProperties) {
+        this.fatigueProperties = fatigueProperties;
+    }
 
     @GetMapping("/threshold")
     public Result<Map<String, Object>> getThreshold() {

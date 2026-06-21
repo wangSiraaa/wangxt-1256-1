@@ -14,7 +14,6 @@ import com.fatigue.risk.enums.AppealStatusEnum;
 import com.fatigue.risk.enums.RestrictionStatusEnum;
 import com.fatigue.risk.mapper.DriverAppealMapper;
 import com.fatigue.risk.vo.DriverAppealVO;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -22,13 +21,19 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class DriverAppealService extends ServiceImpl<DriverAppealMapper, DriverAppeal> {
 
     private final DriverAppealMapper driverAppealMapper;
     private final RiskRestrictionService riskRestrictionService;
+
+    public DriverAppealService(DriverAppealMapper driverAppealMapper,
+                               RiskRestrictionService riskRestrictionService) {
+        this.driverAppealMapper = driverAppealMapper;
+        this.riskRestrictionService = riskRestrictionService;
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public DriverAppeal submitAppeal(AppealSubmitDTO dto) {
@@ -70,7 +75,7 @@ public class DriverAppealService extends ServiceImpl<DriverAppealMapper, DriverA
         return appeal;
     }
 
-    private boolean checkMaterialComplete(AppealSubmitDTO dto) {
+    public boolean checkMaterialComplete(AppealSubmitDTO dto) {
         boolean hasProof = StringUtils.hasText(dto.getRestProofUrl());
         boolean hasTimeRange = dto.getRestStartTime() != null && dto.getRestEndTime() != null;
         boolean hasMinutes = dto.getRestMinutes() != null && dto.getRestMinutes() > 0;
@@ -146,7 +151,7 @@ public class DriverAppealService extends ServiceImpl<DriverAppealMapper, DriverA
         List<DriverAppeal> list = list(new LambdaQueryWrapper<DriverAppeal>()
                 .eq(DriverAppeal::getDriverId, driverId)
                 .orderByDesc(DriverAppeal::getCreateTime));
-        return list.stream().map(this::toVo).toList();
+        return list.stream().map(this::toVo).collect(Collectors.toList());
     }
 
     private DriverAppealVO toVo(DriverAppeal a) {

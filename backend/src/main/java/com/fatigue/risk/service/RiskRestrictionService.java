@@ -11,7 +11,6 @@ import com.fatigue.risk.enums.RestrictionStatusEnum;
 import com.fatigue.risk.enums.RestrictionTypeEnum;
 import com.fatigue.risk.mapper.RiskRestrictionMapper;
 import com.fatigue.risk.vo.RiskRestrictionVO;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,10 +20,13 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 public class RiskRestrictionService extends ServiceImpl<RiskRestrictionMapper, RiskRestriction> {
 
     private final RiskRestrictionMapper riskRestrictionMapper;
+
+    public RiskRestrictionService(RiskRestrictionMapper riskRestrictionMapper) {
+        this.riskRestrictionMapper = riskRestrictionMapper;
+    }
 
     public PageResult<RiskRestrictionVO> queryPage(RestrictionQueryDTO query) {
         Page<RiskRestrictionVO> page = new Page<>(query.getPageNum(), query.getPageSize());

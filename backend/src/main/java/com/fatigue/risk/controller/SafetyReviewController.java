@@ -8,15 +8,17 @@ import com.fatigue.risk.entity.SafetyReview;
 import com.fatigue.risk.service.SafetyReviewService;
 import com.fatigue.risk.vo.SafetyReviewVO;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/review")
-@RequiredArgsConstructor
 public class SafetyReviewController {
 
     private final SafetyReviewService safetyReviewService;
+
+    public SafetyReviewController(SafetyReviewService safetyReviewService) {
+        this.safetyReviewService = safetyReviewService;
+    }
 
     @PostMapping("/do")
     public Result<SafetyReview> doReview(@Valid @RequestBody SafetyReviewDTO dto) {

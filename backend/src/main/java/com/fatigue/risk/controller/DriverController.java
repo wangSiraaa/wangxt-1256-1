@@ -3,17 +3,19 @@ package com.fatigue.risk.controller;
 import com.fatigue.risk.common.Result;
 import com.fatigue.risk.entity.Driver;
 import com.fatigue.risk.service.DriverService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/driver")
-@RequiredArgsConstructor
 public class DriverController {
 
     private final DriverService driverService;
+
+    public DriverController(DriverService driverService) {
+        this.driverService = driverService;
+    }
 
     @GetMapping("/list")
     public Result<List<Driver>> list() {

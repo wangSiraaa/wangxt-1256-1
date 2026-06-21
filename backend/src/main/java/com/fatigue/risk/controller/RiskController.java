@@ -9,7 +9,6 @@ import com.fatigue.risk.service.DriverOnlineHoursService;
 import com.fatigue.risk.service.RiskRestrictionService;
 import com.fatigue.risk.vo.RiskRestrictionVO;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,11 +17,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/risk")
-@RequiredArgsConstructor
 public class RiskController {
 
     private final DriverOnlineHoursService driverOnlineHoursService;
     private final RiskRestrictionService riskRestrictionService;
+
+    public RiskController(DriverOnlineHoursService driverOnlineHoursService,
+                          RiskRestrictionService riskRestrictionService) {
+        this.driverOnlineHoursService = driverOnlineHoursService;
+        this.riskRestrictionService = riskRestrictionService;
+    }
 
     @PostMapping("/hours/import")
     public Result<DriverOnlineHours> importHours(@Valid @RequestBody OnlineHoursImportDTO dto) {

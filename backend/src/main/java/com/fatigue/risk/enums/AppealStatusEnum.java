@@ -1,8 +1,5 @@
 package com.fatigue.risk.enums;
 
-import lombok.Getter;
-
-@Getter
 public enum AppealStatusEnum {
     PENDING_AUDIT(1, "待审核"),
     MATERIAL_INCOMPLETE(2, "材料不完整"),
@@ -16,6 +13,14 @@ public enum AppealStatusEnum {
     AppealStatusEnum(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public String getDesc() {
+        return desc;
     }
 
     public static String getDescByCode(Integer code) {

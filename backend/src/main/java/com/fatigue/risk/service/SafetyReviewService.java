@@ -12,7 +12,6 @@ import com.fatigue.risk.enums.AppealStatusEnum;
 import com.fatigue.risk.enums.ReviewResultEnum;
 import com.fatigue.risk.mapper.SafetyReviewMapper;
 import com.fatigue.risk.vo.SafetyReviewVO;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,12 +20,19 @@ import java.util.List;
 import java.util.Random;
 
 @Service
-@RequiredArgsConstructor
 public class SafetyReviewService extends ServiceImpl<SafetyReviewMapper, SafetyReview> {
 
     private final SafetyReviewMapper safetyReviewMapper;
     private final DriverAppealService driverAppealService;
     private final RiskRestrictionService riskRestrictionService;
+
+    public SafetyReviewService(SafetyReviewMapper safetyReviewMapper,
+                               DriverAppealService driverAppealService,
+                               RiskRestrictionService riskRestrictionService) {
+        this.safetyReviewMapper = safetyReviewMapper;
+        this.driverAppealService = driverAppealService;
+        this.riskRestrictionService = riskRestrictionService;
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public SafetyReview doReview(SafetyReviewDTO dto) {
@@ -34,7 +40,7 @@ public class SafetyReviewService extends ServiceImpl<SafetyReviewMapper, SafetyR
         if (appeal == null) {
             throw new RuntimeException("申诉记录不存在");
         }
-        if (!appeal.getMaterialComplete().equals(1)) {
+        if (appeal.getMaterialComplete() == null || !appeal.getMaterialComplete().equals(1)) {
             throw new RuntimeException("申诉材料不完整，无法进入安全复核流程");
         }
         if (appeal.getAppealStatus().equals(AppealStatusEnum.APPEAL_PASSED.getCode())
@@ -61,7 +67,7 @@ public class SafetyReviewService extends ServiceImpl<SafetyReviewMapper, SafetyR
 
         if (ReviewResultEnum.RELEASE_RESTRICTION.getCode().equals(dto.getReviewResult())) {
             driverAppealService.updateAppealStatus(dto.getAppealId(), AppealStatusEnum.APPEAL_PASSED);
-            boolean keepEv = review.getKeepEvidence() == 1;
+            boolean keepEv = review.getKeepEvidence() != null && review.getKeepEvidence() == 1;
             riskRestrictionService.releaseRestriction(dto.getRestrictionId(), review.getId(), keepEv);
         } else {
             driverAppealService.updateAppealStatus(dto.getAppealId(), AppealStatusEnum.APPEAL_REJECTED);

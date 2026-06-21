@@ -1,8 +1,5 @@
 package com.fatigue.risk.enums;
 
-import lombok.Getter;
-
-@Getter
 public enum RestrictionTypeEnum {
     CONSECUTIVE_ORDERS(1, "连续接单超限"),
     ONLINE_HOURS(2, "在线时长超限"),
@@ -14,6 +11,14 @@ public enum RestrictionTypeEnum {
     RestrictionTypeEnum(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public String getDesc() {
+        return desc;
     }
 
     public static String getDescByCode(Integer code) {

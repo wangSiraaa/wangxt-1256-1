@@ -5,12 +5,10 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Data
 @TableName("driver_online_hours")
 public class DriverOnlineHours {
     @TableId(type = IdType.AUTO)
@@ -49,4 +47,100 @@ public class DriverOnlineHours {
     @TableLogic
     @TableField("deleted")
     private Integer deleted;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getDriverId() {
+        return driverId;
+    }
+
+    public void setDriverId(Long driverId) {
+        this.driverId = driverId;
+    }
+
+    public LocalDate getWorkDate() {
+        return workDate;
+    }
+
+    public void setWorkDate(LocalDate workDate) {
+        this.workDate = workDate;
+    }
+
+    public LocalDateTime getOnlineStart() {
+        return onlineStart;
+    }
+
+    public void setOnlineStart(LocalDateTime onlineStart) {
+        this.onlineStart = onlineStart;
+    }
+
+    public LocalDateTime getOnlineEnd() {
+        return onlineEnd;
+    }
+
+    public void setOnlineEnd(LocalDateTime onlineEnd) {
+        this.onlineEnd = onlineEnd;
+    }
+
+    public Integer getOnlineMinutes() {
+        return onlineMinutes;
+    }
+
+    public void setOnlineMinutes(Integer onlineMinutes) {
+        this.onlineMinutes = onlineMinutes;
+    }
+
+    public Integer getWorkMinutes() {
+        return workMinutes;
+    }
+
+    public void setWorkMinutes(Integer workMinutes) {
+        this.workMinutes = workMinutes;
+    }
+
+    public Integer getRestMinutes() {
+        return restMinutes;
+    }
+
+    public void setRestMinutes(Integer restMinutes) {
+        this.restMinutes = restMinutes;
+    }
+
+    public Integer getOrderCount() {
+        return orderCount;
+    }
+
+    public void setOrderCount(Integer orderCount) {
+        this.orderCount = orderCount;
+    }
+
+    public String getBatchNo() {
+        return batchNo;
+    }
+
+    public void setBatchNo(String batchNo) {
+        this.batchNo = batchNo;
+    }
+
+    public LocalDateTime getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
+    }
+
+    public Integer getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Integer deleted) {
+        this.deleted = deleted;
+    }
 }

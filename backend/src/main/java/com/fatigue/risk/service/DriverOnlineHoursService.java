@@ -10,8 +10,8 @@ import com.fatigue.risk.entity.RiskRestriction;
 import com.fatigue.risk.enums.RestrictionStatusEnum;
 import com.fatigue.risk.enums.RestrictionTypeEnum;
 import com.fatigue.risk.mapper.DriverOnlineHoursMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,15 +22,25 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class DriverOnlineHoursService extends ServiceImpl<DriverOnlineHoursMapper, DriverOnlineHours> {
+
+    private static final Logger log = LoggerFactory.getLogger(DriverOnlineHoursService.class);
 
     private final DriverOnlineHoursMapper driverOnlineHoursMapper;
     private final RiskRestrictionService riskRestrictionService;
     private final FatigueProperties fatigueProperties;
     private final ObjectMapper objectMapper;
+
+    public DriverOnlineHoursService(DriverOnlineHoursMapper driverOnlineHoursMapper,
+                                    RiskRestrictionService riskRestrictionService,
+                                    FatigueProperties fatigueProperties,
+                                    ObjectMapper objectMapper) {
+        this.driverOnlineHoursMapper = driverOnlineHoursMapper;
+        this.riskRestrictionService = riskRestrictionService;
+        this.fatigueProperties = fatigueProperties;
+        this.objectMapper = objectMapper;
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public DriverOnlineHours importHours(OnlineHoursImportDTO dto) {

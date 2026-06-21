@@ -1,8 +1,5 @@
 package com.fatigue.risk.enums;
 
-import lombok.Getter;
-
-@Getter
 public enum RestrictionStatusEnum {
     RESTRICTING(1, "限制中"),
     APPEALING(2, "申诉中"),
@@ -15,6 +12,14 @@ public enum RestrictionStatusEnum {
     RestrictionStatusEnum(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public String getDesc() {
+        return desc;
     }
 
     public static String getDescByCode(Integer code) {
